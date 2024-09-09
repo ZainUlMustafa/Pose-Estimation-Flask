@@ -2,31 +2,17 @@ from flask import Flask, render_template, Response
 import cv2
 import mediapipe as mp
 import numpy as np
+from ultralytics import YOLO
 
 app = Flask(__name__)
+
+# Initialize YOLOv8 model
+model = YOLO("yolov8n.pt")  # Load YOLOv8 model for person detection
 
 # Initialize MediaPipe Pose
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose()
-
-# Load logo
-logo = cv2.imread('logo.png', cv2.IMREAD_UNCHANGED)
-
-# Function to overlay logo
-def overlay_logo(frame, logo, position=(10, 10), scale=0.2):
-    logo_h, logo_w, _ = logo.shape
-    logo = cv2.resize(logo, (0, 0), fx=scale, fy=scale)
-    logo_h, logo_w, _ = logo.shape
-    x, y = position
-    roi = frame[y:y + logo_h, x:x + logo_w]
-    logo_gray = cv2.cvtColor(logo, cv2.COLOR_BGR2GRAY)
-    _, mask = cv2.threshold(logo_gray, 1, 255, cv2.THRESH_BINARY)
-    mask_inv = cv2.bitwise_not(mask)
-    img_bg = cv2.bitwise_and(roi, roi, mask=mask_inv)
-    logo_fg = cv2.bitwise_and(logo, logo, mask=mask)
-    dst = cv2.add(img_bg, logo_fg)
-    frame[y:y + logo_h, x:x + logo_w] = dst
-    return frame
+mp_drawing = mp.solutions.drawing_utils
 
 # Video stream generator function
 def generate_frames():
@@ -37,22 +23,38 @@ def generate_frames():
         if not success:
             break
 
-        # Convert frame to RGB for MediaPipe processing
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # Run YOLOv8 object detection
+        results = model(frame)
+        boxes = results[0].boxes.cpu().numpy()  # Extract bounding boxes
 
-        # Pose estimation
-        results = pose.process(rgb_frame)
+        # Iterate through detected objects
+        for box in boxes:
+            if box.cls == 0:  # YOLO class 0 corresponds to 'person'
+                # Get bounding box coordinates
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+                
+                # Draw bounding box on the original frame
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-        # Draw pose landmarks
-        if results.pose_landmarks:
-            mp.solutions.drawing_utils.draw_landmarks(
-                frame,
-                results.pose_landmarks,
-                mp_pose.POSE_CONNECTIONS
-            )
+                # Crop the detected person from the frame
+                person_frame = frame[y1:y2, x1:x2]
 
-        # Overlay company logo
-        # frame = overlay_logo(frame, logo)
+                # Convert cropped person frame to RGB for MediaPipe processing
+                person_rgb = cv2.cvtColor(person_frame, cv2.COLOR_BGR2RGB)
+
+                # Apply MediaPipe Pose Estimation on the cropped person
+                results_pose = pose.process(person_rgb)
+
+                # Draw pose landmarks if detected
+                if results_pose.pose_landmarks:
+                    mp_drawing.draw_landmarks(
+                        person_frame,
+                        results_pose.pose_landmarks,
+                        mp_pose.POSE_CONNECTIONS
+                    )
+
+                # Place the cropped and processed person frame back into the original frame
+                frame[y1:y2, x1:x2] = person_frame
 
         # Encode the frame to JPEG
         ret, buffer = cv2.imencode('.jpg', frame)
