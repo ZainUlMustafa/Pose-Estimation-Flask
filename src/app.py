@@ -9,11 +9,6 @@ import os
 app = Flask(__name__)
 CORS(app)  # Enable Cross-Origin Resource Sharing
 
-# Initialize MediaPipe Pose
-mp_pose = mp.solutions.pose
-pose = mp_pose.Pose()
-mp_drawing = mp.solutions.drawing_utils
-
 # Default camera index
 camera_index = 0
 
@@ -22,6 +17,11 @@ def generate_frames():
     global camera_index
     cap = cv2.VideoCapture(camera_index)  # Use the selected camera
     print(f'Cam index: {camera_index}')
+
+    # Initialize MediaPipe Pose
+    mp_pose = mp.solutions.pose
+    pose = mp_pose.Pose()
+    mp_drawing = mp.solutions.drawing_utils
 
     # Initialize YOLOv8 model
     model = YOLO("yolov8n.pt")  # Load YOLOv8 model for person detection
