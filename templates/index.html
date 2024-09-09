@@ -3,12 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pose Estimation with MediaPipe</title>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <title>Parados AI</title>
+    <style>
+        /* Set the background color to black for the entire page */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #141414;
+        }
+
+        /* Style for the card that contains the video and logo */
+        .card {
+            position: relative;
+            display: inline-block;
+            background-color: #fff; /* Background color for the card */
+            border-radius: 15px; /* Rounded corners */
+            overflow: hidden; /* Ensures rounded corners for the video */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 
+                        0 6px 20px rgba(0, 0, 0, 0.19); /* Adds shadow for elevation effect */
+            max-width: 95%; /* Adjust the max width */
+            width: 100%; /* Ensures responsiveness */
+        }
+
+        /* Style for the video feed */
+        .video-feed {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        /* Style for the logo overlay */
+        .logo-overlay {
+            position: absolute;
+            top: 10px; /* Position the logo on top left */
+            left: 10px;
+            width: 100px; /* Adjust size of the logo */
+            opacity: 0.8; /* Optional: Add some transparency */
+        }
+    </style>
 </head>
 <body>
-    <div>
-        <img src="{{ url_for('video_feed') }}" width="100%" height="100%">
+    <div class="card">
+        <!-- Video stream rendered here -->
+        <img class="video-feed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+
+        <!-- Logo overlay on top of the video -->
+        <img class="logo-overlay" src="{{ url_for('static', filename='logo-b.png') }}" alt="Company Logo">
     </div>
 </body>
 </html>
