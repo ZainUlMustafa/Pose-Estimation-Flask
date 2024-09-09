@@ -3,8 +3,11 @@ import cv2
 import mediapipe as mp
 import numpy as np
 from ultralytics import YOLO
+from flask_cors import CORS
+import os
 
 app = Flask(__name__)
+CORS(app)  # NECCESSITY FOR CROSS ORIGIN REQUEST
 
 # Initialize YOLOv8 model
 model = YOLO("yolov8n.pt")  # Load YOLOv8 model for person detection
@@ -73,4 +76,5 @@ def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
+#endif
