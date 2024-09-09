@@ -8,9 +8,11 @@ import os
 
 app = Flask(__name__)
 CORS(app)  # Enable Cross-Origin Resource Sharing
+print("CORS enabled")
 
 # Default camera index
 camera_index = 0
+print("Default camera index")
 
 # Video stream generator function
 def generate_frames():
@@ -97,4 +99,4 @@ def set_camera(selected_camera_index):
     return '', 200  # Return a 200 OK response to confirm
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
+    app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
