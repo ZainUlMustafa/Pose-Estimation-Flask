@@ -9,9 +9,6 @@ import os
 app = Flask(__name__)
 CORS(app)  # Enable Cross-Origin Resource Sharing
 
-# Initialize YOLOv8 model
-model = YOLO("yolov8n.pt")  # Load YOLOv8 model for person detection
-
 # Initialize MediaPipe Pose
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose()
@@ -24,6 +21,10 @@ camera_index = 0
 def generate_frames():
     global camera_index
     cap = cv2.VideoCapture(camera_index)  # Use the selected camera
+    print(f'Cam index: {camera_index}')
+
+    # Initialize YOLOv8 model
+    model = YOLO("yolov8n.pt")  # Load YOLOv8 model for person detection
 
     while True:
         success, frame = cap.read()
@@ -77,6 +78,11 @@ def generate_frames():
 @app.route('/')
 def index():
     print('Rendering template index')
+    return 'Connected', 200
+
+@app.route('/proc')
+def proc():
+    print('Rendering template index')
     return render_template('index.html')
 
 @app.route('/video_feed')
@@ -91,4 +97,4 @@ def set_camera(selected_camera_index):
     return '', 200  # Return a 200 OK response to confirm
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
