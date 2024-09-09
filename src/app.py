@@ -28,14 +28,17 @@ def generate_frames():
     while True:
         success, frame = cap.read()
         if not success:
+            print('Not successful')
             break
 
+        print('Frame grab successful')
         # Run YOLOv8 object detection
         results = model(frame)
         boxes = results[0].boxes.cpu().numpy()  # Extract bounding boxes
 
         # Iterate through detected objects
         for box in boxes:
+            print('Box proc')
             if box.cls == 0:  # YOLO class 0 corresponds to 'person'
                 # Get bounding box coordinates
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
@@ -73,6 +76,7 @@ def generate_frames():
 
 @app.route('/')
 def index():
+    print('Rendering template index')
     return render_template('index.html')
 
 @app.route('/video_feed')
@@ -83,7 +87,8 @@ def video_feed():
 def set_camera(selected_camera_index):
     global camera_index
     camera_index = selected_camera_index  # Update the camera index based on user selection
+    print(f'Selected: {camera_index}')
     return '', 200  # Return a 200 OK response to confirm
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
