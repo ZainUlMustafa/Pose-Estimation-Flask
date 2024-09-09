@@ -7,7 +7,7 @@ from flask_cors import CORS
 import os
 
 app = Flask(__name__)
-CORS(app)  # NECCESSITY FOR CROSS ORIGIN REQUEST
+CORS(app)  # Enable Cross-Origin Resource Sharing
 
 # Initialize YOLOv8 model
 model = YOLO("yolov8n.pt")  # Load YOLOv8 model for person detection
@@ -17,9 +17,13 @@ mp_pose = mp.solutions.pose
 pose = mp_pose.Pose()
 mp_drawing = mp.solutions.drawing_utils
 
+# Default camera index
+camera_index = 0
+
 # Video stream generator function
 def generate_frames():
-    cap = cv2.VideoCapture(0)
+    global camera_index
+    cap = cv2.VideoCapture(camera_index)  # Use the selected camera
 
     while True:
         success, frame = cap.read()
@@ -75,6 +79,11 @@ def index():
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/set_camera/<int:selected_camera_index>', methods=['GET'])
+def set_camera(selected_camera_index):
+    global camera_index
+    camera_index = selected_camera_index  # Update the camera index based on user selection
+    return '', 200  # Return a 200 OK response to confirm
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
-#endif
