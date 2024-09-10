@@ -7,8 +7,10 @@ from PIL import Image
 import io
 from ultralytics import YOLO
 import mediapipe as mp
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Initialize YOLOv5 Model (ultralytics)
@@ -88,4 +90,4 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=8080)
+    socketio.run(app, host='0.0.0.0', port=8080, allow_unsafe_werkzeug=True)

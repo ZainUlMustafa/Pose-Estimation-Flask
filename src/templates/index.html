@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YOLO & Pose Estimation - Processed Feed</title>
+    <title>Parados Live AI</title>
     <style>
         body {
             background-color: #141414;
@@ -79,7 +79,9 @@
         const cameraSelect = document.getElementById('cameraSelect');
 
         // Dynamically connect to the server based on the current hostname
-        const socket = io.connect(`${window.location.protocol}//${window.location.hostname}:8080`);
+        const serverHostAddress = `${window.location.protocol}//${window.location.hostname}`
+        const socket = io.connect(serverHostAddress);
+        console.log(serverHostAddress)
         let currentStream;
 
         // Get the available cameras
