@@ -10,6 +10,14 @@ app = Flask(__name__)
 CORS(app)  # Enable Cross-Origin Resource Sharing
 print("CORS enabled")
 
+# Initialize MediaPipe Pose
+mp_pose = mp.solutions.pose
+pose = mp_pose.Pose()
+mp_drawing = mp.solutions.drawing_utils
+
+# Initialize YOLOv8 model
+model = YOLO("yolov8n.pt")  # Load YOLOv8 model for person detection
+
 # Default camera index
 camera_index = 0
 print("Default camera index")
@@ -19,14 +27,6 @@ def generate_frames():
     global camera_index
     cap = cv2.VideoCapture(camera_index)  # Use the selected camera
     print(f'Cam index: {camera_index}')
-
-    # Initialize MediaPipe Pose
-    mp_pose = mp.solutions.pose
-    pose = mp_pose.Pose()
-    mp_drawing = mp.solutions.drawing_utils
-
-    # Initialize YOLOv8 model
-    model = YOLO("yolov8n.pt")  # Load YOLOv8 model for person detection
 
     while True:
         success, frame = cap.read()
@@ -39,35 +39,38 @@ def generate_frames():
         results = model(frame)
         boxes = results[0].boxes.cpu().numpy()  # Extract bounding boxes
 
-        # Iterate through detected objects
-        for box in boxes:
+        # Filter for people (class 0) and sort by confidence, take top 3
+        person_boxes = [box for box in boxes if box.cls == 0]
+        person_boxes = sorted(person_boxes, key=lambda x: x.conf[0], reverse=True)[:3]
+
+        # Iterate through top 3 detected people
+        for box in person_boxes:
             print('Box proc')
-            if box.cls == 0:  # YOLO class 0 corresponds to 'person'
-                # Get bounding box coordinates
-                x1, y1, x2, y2 = map(int, box.xyxy[0])
-                
-                # Draw bounding box on the original frame
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            # Get bounding box coordinates
+            x1, y1, x2, y2 = map(int, box.xyxy[0])
+            
+            # Draw bounding box on the original frame
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-                # Crop the detected person from the frame
-                person_frame = frame[y1:y2, x1:x2]
+            # Crop the detected person from the frame
+            person_frame = frame[y1:y2, x1:x2]
 
-                # Convert cropped person frame to RGB for MediaPipe processing
-                person_rgb = cv2.cvtColor(person_frame, cv2.COLOR_BGR2RGB)
+            # Convert cropped person frame to RGB for MediaPipe processing
+            person_rgb = cv2.cvtColor(person_frame, cv2.COLOR_BGR2RGB)
 
-                # Apply MediaPipe Pose Estimation on the cropped person
-                results_pose = pose.process(person_rgb)
+            # Apply MediaPipe Pose Estimation on the cropped person
+            results_pose = pose.process(person_rgb)
 
-                # Draw pose landmarks if detected
-                if results_pose.pose_landmarks:
-                    mp_drawing.draw_landmarks(
-                        person_frame,
-                        results_pose.pose_landmarks,
-                        mp_pose.POSE_CONNECTIONS
-                    )
+            # Draw pose landmarks if detected
+            if results_pose.pose_landmarks:
+                mp_drawing.draw_landmarks(
+                    person_frame,
+                    results_pose.pose_landmarks,
+                    mp_pose.POSE_CONNECTIONS
+                )
 
-                # Place the cropped and processed person frame back into the original frame
-                frame[y1:y2, x1:x2] = person_frame
+            # Place the cropped and processed person frame back into the original frame
+            frame[y1:y2, x1:x2] = person_frame
 
         # Encode the frame to JPEG
         ret, buffer = cv2.imencode('.jpg', frame)
