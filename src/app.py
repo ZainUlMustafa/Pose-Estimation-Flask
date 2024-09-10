@@ -35,6 +35,9 @@ def process_frame_with_yolo_and_pose(frame):
             # Get bounding box coordinates
             x1, y1, x2, y2 = map(int, result[:4].tolist())
 
+            # Draw bounding box around the detected person
+            cv2.rectangle(detected_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Green box
+
             # Crop the detected person from the frame
             person_frame = detected_frame[y1:y2, x1:x2]
 
@@ -61,7 +64,6 @@ def process_frame_with_yolo_and_pose(frame):
 # Handle incoming WebSocket frames
 @socketio.on('frame')
 def handle_frame(data):
-    # print("Handling incoming")
     # Decode base64 image
     frame_data = data.split(',')[1]
     frame_bytes = base64.b64decode(frame_data)
