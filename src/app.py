@@ -30,13 +30,17 @@ def process_frame_with_yolo_and_pose(frame):
     # 2. MediaPipe Pose Detection
     frame_rgb = cv2.cvtColor(detected_frame, cv2.COLOR_BGR2RGB)
 
+    # Filter to only keep the top 3 bounding boxes with the highest confidence
+    top_detections = sorted(results[0].boxes.data, key=lambda x: x[4].item(), reverse=True)[:3]
+
     # Process detections
-    for result in results[0].boxes.data:
+    for result in top_detections:
+        # Get bounding box coordinates and confidence
+        x1, y1, x2, y2 = map(int, result[:4].tolist())  # Extract coordinates
+        confidence = result[4].item()  # Extract confidence
+
         cls = int(result[5].item())  # Get the class index
         if cls == 0:  # YOLO class 0 corresponds to 'person'
-            # Get bounding box coordinates
-            x1, y1, x2, y2 = map(int, result[:4].tolist())
-
             # Draw bounding box around the detected person
             cv2.rectangle(detected_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Green box
 
@@ -62,6 +66,7 @@ def process_frame_with_yolo_and_pose(frame):
 
     detected_frame_rgb = cv2.cvtColor(detected_frame, cv2.COLOR_BGR2RGB)
     return detected_frame_rgb
+
 
 # Handle incoming WebSocket frames
 @socketio.on('frame')
