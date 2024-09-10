@@ -50,11 +50,19 @@
             border-radius: 20px;
         }
 
-        .logo-overlay {
+        .qr-overlay {
             position: absolute;
             top: 20px;
             right: 20px;
-            width: 100px;
+            width: 200px;
+            z-index: 2;
+        }
+
+        .logo-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 200px;
             z-index: 2;
         }
     </style>
@@ -70,6 +78,7 @@
         <!-- Processed video -->
         <img id="processedVideo" alt="Processed Video">
         <!-- Logo Overlay -->
+        <img src="{{ url_for('static', filename='qr-code.png') }}" alt="Logo" class="qr-overlay">
         <img src="{{ url_for('static', filename='logo-b.png') }}" alt="Logo" class="logo-overlay">
     </div>
 
